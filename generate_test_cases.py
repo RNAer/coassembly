@@ -18,11 +18,11 @@ run_idba = True
 
 # SPades
 spades = '/compy-home/sawa6416/tools/SPAdes-3.0.0-Linux/bin/spades.py'
-run_spades = False
+run_spades = True 
 
 # Minia 
 minia = '/compy-home/sawa6416/tools/minia-1.6088/minia'
-run_minia = False
+run_minia = True
 minia_kmer = 31
 minia_min = 3
 minia_size_est = 5000000 # 5MBp 
@@ -45,10 +45,10 @@ for n in xrange(1, max_combine+1):
         output.write('#!/bin/bash\n')
         cmds = [] 
 
-        test_case_dir = output_dir+'/test_case_'+str(i)+'/'
-        files1 =' '.join([test_case_dir+pair[0] for pair in test_set])
-        files2 =' '.join([test_case_dir+pair[1] for pair in test_set])
-        cmds.append('#---------- PREPARATION -------------'
+        test_case_dir = output_dir+'test_case_'+str(i)+'/'
+        files1 =' '.join([input_dir+pair[0] for pair in test_set])
+        files2 =' '.join([input_dir+pair[1] for pair in test_set])
+        cmds.append('\n#---------- PREPARATION -------------')
         cmds.append('mkdir ' + test_case_dir)
         cmds.append('cat %s > %s1.fq.gz' % (files1, test_case_dir))
         cmds.append('cat %s > %s2.fq.gz' % (files2, test_case_dir))
@@ -57,7 +57,7 @@ for n in xrange(1, max_combine+1):
             """ IDBA requires an interleaved FASTA file for the sequences 
                 Need to create that from the pair of FASTQ files.
             """ 
-            cmds.append('#---------- RUN IDBA -------------'
+            cmds.append('\n#---------- RUN IDBA -------------')
             # fq2fa not working... ugh.
             #cmds.append(fq2fa + (' --merge %s1.fq.gz %s2.fq.gz %sseqs.fasta' \
             #    % (test_case_dir, test_case_dir, test_case_dir)))
@@ -77,29 +77,29 @@ for n in xrange(1, max_combine+1):
             cmds.append('rm %s2.fa' % (test_case_dir))
 
         if run_spades: 
-            cmds.append('#---------- RUN SPADES -------------'
+            cmds.append('\n#---------- RUN SPADES -------------')
             spades_dir = test_case_dir + 'out_spades/'
             cmds.append(spades + (' --pe1-1 %s1.fq.gz --pe1-2 %s2.fq.gz ' % \
                 (test_case_dir, test_case_dir)) + '-o ' + spades_dir)
 
         if run_minia:
-            cmds.append('#---------- RUN MINIA -------------'
+            cmds.append('\n#---------- RUN MINIA -------------')
             minia_dir = test_case_dir + 'out_minia/'
             cmds.append('cat %s1.fq.gz %s2.fq.gz > %scombined.fq.gz' \
                 % (test_case_dir, test_case_dir, test_case_dir))
-            cmds.append(minia + ' %scombined.fq.gz %d %d %d %s/out' % \
-                test_case_dir, minia_kmer, minia_min, minia_size_est, minia_dir)
+            cmds.append(minia + ' %scombined.fq.gz %d %d %d %sout' % \
+                (test_case_dir, minia_kmer, minia_min, minia_size_est, minia_dir))
             cmds.append('rm -f %scombined.fq.gz' % (test_case_dir))
+
+        cmds.append('\n#---------- CLEAN UP -------------')
+        cmds.append('rm %s1.fq' % (test_case_dir))
+        cmds.append('rm %s2.fq' % (test_case_dir))
 
         # Write all commands to test case script 
         output.write('\n'.join(cmds)+'\n')
         output.close()
         notes.write('%d: %s\n' % (i, ', '.join([pair[0] for pair in test_set])))
         i = i + 1
-
-        # Clean up
-        cmds.append('rm %s1.fq' % (test_case_dir))
-        cmds.append('rm %s2.fq' % (test_case_dir))
 
 notes.close()
 
