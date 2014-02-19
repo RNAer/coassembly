@@ -3,6 +3,23 @@ import os
 import re
 from itertools import combinations
 
+""" This script generates test cases in the form of bash scripts 
+    to run a collection of sequencing reads through several 
+    assembly programs (IDBA, SPades, and Minia, at the moment.)
+
+    The program combines and assembles all possible combinations 
+    of the supplied read sets, from 1 (single set) up to 
+    max_combine (inclusive), specified below.
+
+    Some assemblers require different input formats, so 
+    code is in place to create and remove temporary files as needed. 
+
+    What to specify:
+"""
+
+# ---------------------------------------------------------------------
+#  Configuration of input/output/executable paths and program options
+# ---------------------------------------------------------------------
 max_combine = 5
 test_case_dir = './test_cases/'
 test_case_prefix = test_case_dir + 'tc' 
@@ -10,7 +27,6 @@ test_case_notes = test_case_dir + 'NOTES.txt'
 input_dir = '/compy-home/sawa6416/assembly/hand_selected_strains/'
 output_dir = '/compy-home/sawa6416/assembly/coassembly_test/'
 interleave = '/compy-home/sawa6416/bin/interleave-fasta.py'
-#fq2fa = '/compy-home/sawa6416/tools/idba-1.1.1/bin/fq2fa'
 
 """ Specify and select specific assemblers """ 
 # IDBA 
@@ -28,7 +44,8 @@ minia_kmer = 31
 minia_min = 3
 minia_size_est = 5000000 # 5MBp 
 
-""" Build a list of all paired-end read files """ 
+# ---------------------------------------------------------------------
+
 file_pairs = []
 for fastq in os.listdir(input_dir):
     if fastq.endswith("1.fq.gz"):
@@ -60,9 +77,10 @@ for n in xrange(1, max_combine+1):
             """ 
             cmds.append('\n#---------- RUN IDBA -------------')
             # fq2fa not working... ugh.
+            #fq2fa = '/compy-home/sawa6416/tools/idba-1.1.1/bin/fq2fa'
             #cmds.append(fq2fa + (' --merge %s1.fq.gz %s2.fq.gz %sseqs.fasta' \
             #    % (test_case_dir, test_case_dir, test_case_dir)))
-            # Workaround: unzip, convert, merge (SLOW)
+            # Workaround: unzip, convert, merge (slow and annoying)
             cmds.append('gunzip -c %s1.fq.gz > %s1.fq' % (test_case_dir,test_case_dir))
             cmds.append('gunzip -c %s2.fq.gz > %s2.fq' % (test_case_dir,test_case_dir))
             cmds.append('fastq_to_fasta -i %s1.fq -o %s1.fa' % (test_case_dir, test_case_dir))
