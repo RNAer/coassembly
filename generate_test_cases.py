@@ -63,8 +63,8 @@ for n in xrange(1, max_combine+1):
             #cmds.append(fq2fa + (' --merge %s1.fq.gz %s2.fq.gz %sseqs.fasta' \
             #    % (test_case_dir, test_case_dir, test_case_dir)))
             # Workaround: unzip, convert, merge (SLOW)
-            cmds.append('gunzip %s1.fq.gz' % (test_case_dir))
-            cmds.append('gunzip %s2.fq.gz' % (test_case_dir))
+            cmds.append('gunzip -c %s1.fq.gz > %s1.fq' % (test_case_dir,test_case_dir))
+            cmds.append('gunzip -c %s2.fq.gz > %s2.fq' % (test_case_dir,test_case_dir))
             cmds.append('fastq_to_fasta -i %s1.fq -o %s1.fa' % (test_case_dir, test_case_dir))
             cmds.append('fastq_to_fasta -i %s2.fq -o %s2.fa' % (test_case_dir, test_case_dir))
             cmds.append(interleave + ' %s1.fa %s2.fa > %sseqs.fasta' % \
@@ -72,20 +72,25 @@ for n in xrange(1, max_combine+1):
 
             # Run IDBA 
             idba_dir = test_case_dir + 'out_idba/'
+            cmds.append('mkdir -p ' + idba_dir)
             cmds.append(idba + ' -r %sseqs.fasta -o %s' % (test_case_dir, idba_dir))
             cmds.append('rm %sseqs.fasta' % (test_case_dir))
-            cmds.append('rm %s1.fa' % (test_case_dir))
+            cmds.append('rm %s1.fq' % (test_case_dir)) # Get rid of gunzipped files
+            cmds.append('rm %s2.fq' % (test_case_dir))
+            cmds.append('rm %s1.fa' % (test_case_dir)) # Get rid of fasta files
             cmds.append('rm %s2.fa' % (test_case_dir))
 
         if run_spades: 
             cmds.append('\n#---------- RUN SPADES -------------')
             spades_dir = test_case_dir + 'out_spades/'
+            cmds.append('mkdir -p ' + spades_dir)
             cmds.append(spades + (' --pe1-1 %s1.fq.gz --pe1-2 %s2.fq.gz ' % \
                 (test_case_dir, test_case_dir)) + '-o ' + spades_dir)
 
         if run_minia:
             cmds.append('\n#---------- RUN MINIA -------------')
             minia_dir = test_case_dir + 'out_minia/'
+            cmds.append('mkdir -p ' + minia_dir)
             cmds.append('cat %s1.fq.gz %s2.fq.gz > %scombined.fq.gz' \
                 % (test_case_dir, test_case_dir, test_case_dir))
             cmds.append(minia + ' %scombined.fq.gz %d %d %d %sout' % \
@@ -93,8 +98,8 @@ for n in xrange(1, max_combine+1):
             cmds.append('rm -f %scombined.fq.gz' % (test_case_dir))
 
         cmds.append('\n#---------- CLEAN UP -------------')
-        cmds.append('rm %s1.fq' % (test_case_dir))
-        cmds.append('rm %s2.fq' % (test_case_dir))
+        cmds.append('rm %s1.fq.gz' % (test_case_dir))
+        cmds.append('rm %s2.fq.gz' % (test_case_dir))
 
         # Write all commands to test case script 
         output.write('\n'.join(cmds)+'\n')
