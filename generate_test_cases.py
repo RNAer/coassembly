@@ -5,14 +5,28 @@ from itertools import combinations
 
 test_case_prefix = './test_cases/tc' 
 input_dir = '/compy-home/sawa6416/assembly/hand_selected_strains/'
-output_dir = '/compy-home/sawa6416/assembly/hand_selected_strains/'
-run_idba = True
-idba = '/compy-home/sawa6416/tools/idba-1.1.1/bin/idba_ud' 
+output_dir = '/compy-home/sawa6416/assembly/coassembly_test/'
 fq2fa = '/compy-home/sawa6416/tools/idba-1.1.1/bin/fq2fa'
 interleave = '/compy-home/sawa6416/bin/interleave-fasta.py'
 pwd = os.getcwd()
+max_combine = 5
 
-#output = open('test_cases.txt', 'w')
+""" Specify and select specific assemblers """ 
+# IDBA 
+idba = '/compy-home/sawa6416/tools/idba-1.1.1/bin/idba_ud' 
+run_idba = True
+
+# SPades
+spades = '/compy-home/sawa6416/tools/SPAdes-3.0.0-Linux/bin/spades.py'
+run_spades = False
+
+# Minia 
+minia = '/compy-home/sawa6416/tools/minia-1.6088/minia'
+run_minia = False
+minia_kmer = 31
+minia_min = 3
+minia_size_est = 5000000 # 5MBp 
+
 notes = open('test_case_notes.txt', 'w')
 
 """ file_pairs becomes a list of all paired-end read files """ 
@@ -23,40 +37,69 @@ for fastq in os.listdir(input_dir):
             re.sub(r'1.fq.gz$', '2.fq.gz', fastq)))
 
 i = 0 
-for n in xrange(1, 6):
+for n in xrange(1, max_combine+1):
     for test_set in combinations(file_pairs, n):
+        """ Loop over all combinations of 1 to max_combine 
+            mixed genomes """ 
         output = open(test_case_prefix + str(i) + '.sh', 'w')
         output.write('#!/bin/bash\n')
         cmds = [] 
-        dir_name = output_dir+'idba_out_'+str(i)+'/'
-        files1 =' '.join([input_dir+pair[0] for pair in test_set])
-        files2 =' '.join([input_dir+pair[1] for pair in test_set])
-        cmds.append('mkdir ' + dir_name)
-        cmds.append('cat %s > %s1.fq.gz' % (files1, dir_name))
-        cmds.append('cat %s > %s2.fq.gz' % (files2, dir_name))
-        #cmds.append(fq2fa + (' --merge %s1.fq.gz %s2.fq.gz %sseqs.fasta' \
-        #    % (dir_name, dir_name, dir_name)))
-        # fq2fa not working... ugh.
 
-        # Workaround: unzip, convert, merge
-        cmds.append('gunzip %s1.fq.gz' % (dir_name))
-        cmds.append('gunzip %s2.fq.gz' % (dir_name))
-        cmds.append('fastq_to_fasta -i %s1.fq -o %s1.fa' % (dir_name, dir_name))
-        cmds.append('fastq_to_fasta -i %s2.fq -o %s2.fa' % (dir_name, dir_name))
-        cmds.append(interleave + ' %s1.fa %s2.fa > %sseqs.fasta' % \
-            (dir_name, dir_name, dir_name))
-        # Clean up
-        cmds.append('rm %s1.fa' % (dir_name))
-        cmds.append('rm %s2.fa' % (dir_name))
-        cmds.append('rm %s1.fq' % (dir_name))
-        cmds.append('rm %s2.fq' % (dir_name))
+        test_case_dir = output_dir+'/test_case_'+str(i)+'/'
+        files1 =' '.join([test_case_dir+pair[0] for pair in test_set])
+        files2 =' '.join([test_case_dir+pair[1] for pair in test_set])
+        cmds.append('#---------- PREPARATION -------------'
+        cmds.append('mkdir ' + test_case_dir)
+        cmds.append('cat %s > %s1.fq.gz' % (files1, test_case_dir))
+        cmds.append('cat %s > %s2.fq.gz' % (files2, test_case_dir))
+   
+        if run_idba: 
+            """ IDBA requires an interleaved FASTA file for the sequences 
+                Need to create that from the pair of FASTQ files.
+            """ 
+            cmds.append('#---------- RUN IDBA -------------'
+            # fq2fa not working... ugh.
+            #cmds.append(fq2fa + (' --merge %s1.fq.gz %s2.fq.gz %sseqs.fasta' \
+            #    % (test_case_dir, test_case_dir, test_case_dir)))
+            # Workaround: unzip, convert, merge (SLOW)
+            cmds.append('gunzip %s1.fq.gz' % (test_case_dir))
+            cmds.append('gunzip %s2.fq.gz' % (test_case_dir))
+            cmds.append('fastq_to_fasta -i %s1.fq -o %s1.fa' % (test_case_dir, test_case_dir))
+            cmds.append('fastq_to_fasta -i %s2.fq -o %s2.fa' % (test_case_dir, test_case_dir))
+            cmds.append(interleave + ' %s1.fa %s2.fa > %sseqs.fasta' % \
+                (test_case_dir, test_case_dir, test_case_dir))
 
-        cmds.append(idba + ' -r %sseqs.fasta -o %s' % (dir_name, dir_name))
-        cmds.append('rm %sseqs.fasta' % (dir_name))
+            # Run IDBA 
+            idba_dir = test_case_dir + 'out_idba/'
+            cmds.append(idba + ' -r %sseqs.fasta -o %s' % (test_case_dir, idba_dir))
+            cmds.append('rm %sseqs.fasta' % (test_case_dir))
+            cmds.append('rm %s1.fa' % (test_case_dir))
+            cmds.append('rm %s2.fa' % (test_case_dir))
+
+        if run_spades: 
+            cmds.append('#---------- RUN SPADES -------------'
+            spades_dir = test_case_dir + 'out_spades/'
+            cmds.append(spades + (' --pe1-1 %s1.fq.gz --pe1-2 %s2.fq.gz ' % \
+                (test_case_dir, test_case_dir)) + '-o ' + spades_dir)
+
+        if run_minia:
+            cmds.append('#---------- RUN MINIA -------------'
+            minia_dir = test_case_dir + 'out_minia/'
+            cmds.append('cat %s1.fq.gz %s2.fq.gz > %scombined.fq.gz' \
+                % (test_case_dir, test_case_dir, test_case_dir))
+            cmds.append(minia + ' %scombined.fq.gz %d %d %d %s/out' % \
+                test_case_dir, minia_kmer, minia_min, minia_size_est, minia_dir)
+            cmds.append('rm -f %scombined.fq.gz' % (test_case_dir))
+
+        # Write all commands to test case script 
         output.write('\n'.join(cmds)+'\n')
         output.close()
         notes.write('%d: %s\n' % (i, ', '.join([pair[0] for pair in test_set])))
         i = i + 1
+
+        # Clean up
+        cmds.append('rm %s1.fq' % (test_case_dir))
+        cmds.append('rm %s2.fq' % (test_case_dir))
 
 notes.close()
 
