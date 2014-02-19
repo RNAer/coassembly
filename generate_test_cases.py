@@ -3,13 +3,14 @@ import os
 import re
 from itertools import combinations
 
-test_case_prefix = './test_cases/tc' 
+max_combine = 5
+test_case_dir = './test_cases/'
+test_case_prefix = test_case_dir + 'tc' 
+test_case_notes = test_case_dir + 'NOTES.txt' 
 input_dir = '/compy-home/sawa6416/assembly/hand_selected_strains/'
 output_dir = '/compy-home/sawa6416/assembly/coassembly_test/'
-fq2fa = '/compy-home/sawa6416/tools/idba-1.1.1/bin/fq2fa'
 interleave = '/compy-home/sawa6416/bin/interleave-fasta.py'
-pwd = os.getcwd()
-max_combine = 5
+#fq2fa = '/compy-home/sawa6416/tools/idba-1.1.1/bin/fq2fa'
 
 """ Specify and select specific assemblers """ 
 # IDBA 
@@ -27,9 +28,7 @@ minia_kmer = 31
 minia_min = 3
 minia_size_est = 5000000 # 5MBp 
 
-notes = open('test_case_notes.txt', 'w')
-
-""" file_pairs becomes a list of all paired-end read files """ 
+""" Build a list of all paired-end read files """ 
 file_pairs = []
 for fastq in os.listdir(input_dir):
     if fastq.endswith("1.fq.gz"):
@@ -37,6 +36,8 @@ for fastq in os.listdir(input_dir):
             re.sub(r'1.fq.gz$', '2.fq.gz', fastq)))
 
 i = 0 
+notes = open(test_case_notes, 'w')
+
 for n in xrange(1, max_combine+1):
     for test_set in combinations(file_pairs, n):
         """ Loop over all combinations of 1 to max_combine 
