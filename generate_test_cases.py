@@ -21,24 +21,26 @@ from itertools import combinations
 #  Configuration of input/output/executable paths and program options
 # ---------------------------------------------------------------------
 max_combine = 5
+home_dir = '/compy-home/sawa6416/' # for easier switching from compy/s10
 test_case_dir = './test_cases/'
 test_case_prefix = test_case_dir + 'tc' 
 test_case_notes = test_case_dir + 'NOTES.txt' 
-input_dir = '/compy-home/sawa6416/assembly/hand_selected_strains/'
-output_dir = '/compy-home/sawa6416/assembly/coassembly_test/'
-interleave = '/compy-home/sawa6416/bin/interleave-fasta.py'
+input_dir = home_dir + 'assembly/hand_selected_strains/'
+output_dir = home_dir + 'assembly/coassembly_test/'
+interleave = home_dir + 'bin/interleave-fasta.py'
+quast = 'python ' + home_dir + 'tools/quast-2.3/quast.py'
 
 """ Specify and select specific assemblers """ 
 # IDBA 
-idba = '/compy-home/sawa6416/tools/idba-1.1.1/bin/idba_ud' 
+idba = home_dir + 'tools/idba-1.1.1/bin/idba_ud' 
 run_idba = True
 
 # SPades
-spades = '/compy-home/sawa6416/tools/SPAdes-3.0.0-Linux/bin/spades.py'
+spades = home_dir + 'tools/SPAdes-3.0.0-Linux/bin/spades.py'
 run_spades = True 
 
 # Minia 
-minia = '/compy-home/sawa6416/tools/minia-1.6088/minia'
+minia = home_dir + 'tools/minia-1.6088/minia'
 run_minia = True
 minia_kmer = 31
 minia_min = 3
@@ -62,6 +64,7 @@ for n in xrange(1, max_combine+1):
         output = open(test_case_prefix + str(i) + '.sh', 'w')
         output.write('#!/bin/bash\n')
         cmds = [] 
+        contigs = [] 
 
         test_case_dir = output_dir+'test_case_'+str(i)+'/'
         files1 =' '.join([input_dir+pair[0] for pair in test_set])
