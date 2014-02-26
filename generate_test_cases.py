@@ -172,3 +172,6 @@ for n in xrange(1, max_combine+1):
 
 notes.close()
 
+# Make everything executable 
+os.system('chmod u+x %s*.sh' % (test_case_prefix))
+
