@@ -25,7 +25,7 @@ from itertools import combinations
 #  Configuration of input/output/executable paths and program options
 # ---------------------------------------------------------------------
 max_combine = 5
-num_threads = 16
+num_threads = 2
 home_dir = '/home/sawa6416/' # for easier switching from compy/s10
 test_case_dir = './test_cases/' # Where to save the test case scripts 
 test_case_prefix = test_case_dir + 'tc' 
@@ -47,6 +47,7 @@ run_idba = True
 # SPades
 spades = home_dir + 'tools/SPAdes-3.0.0-Linux/bin/spades.py'
 run_spades = True 
+spades_mem = 250
 
 # Minia 
 minia = home_dir + 'tools/minia-1.6088/minia'
@@ -136,7 +137,7 @@ for n in xrange(1, max_combine+1):
             cmds.append(spades + \
                 (' -t %d ' % (num_threads)) + \
                 (' --pe1-1 %s1.fq.gz --pe1-2 %s2.fq.gz ' % (test_case_dir, test_case_dir)) + \
-                 '-o ' + spades_dir)
+                 '-o ' + spades_dir + ' -m ' + str(spades_mem))
             contigs.append(spades_dir + 'contigs.fasta')
             assemblers.append('SPades')
 
