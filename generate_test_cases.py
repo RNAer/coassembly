@@ -25,9 +25,9 @@ from itertools import combinations
 #  Configuration of input/output/executable paths and program options
 # ---------------------------------------------------------------------
 max_combine = 5
-num_threads = 2
+num_threads = 4
 home_dir = '/home/sawa6416/' # for easier switching from compy/s10
-test_case_dir = './test_cases2/' # Where to save the test case scripts 
+test_case_dir = './test_cases/' # Where to save the test case scripts 
 test_case_prefix = test_case_dir + 'tc' 
 test_case_notes = test_case_dir + 'NOTES.txt' 
 input_dir = home_dir + 'assembly/hand_selected_strains/' # Reference FASTA + reads
@@ -127,6 +127,7 @@ for n in xrange(1, max_combine+1):
             cmds.append('mkdir -p ' + idba_dir)
 
             idba_cmd = idba + ' -r %sseqs.fasta -o %s' % (test_case_dir, idba_dir)
+            idba_cmd += ' --num_threads %d' % (num_threads)
             if run_timing: 
                 idba_cmd = timing + (' %sTIMING.txt ' % (idba_dir)) + idba_cmd
             cmds.append(idba_cmd)
@@ -179,9 +180,7 @@ for n in xrange(1, max_combine+1):
 
             quast_cmd = quast + (' --gene-finding ' if run_quast_gene_finding else ' ') + \
                 ' '.join(contigs) + ' -R ' + ','.join(full_refs) + ' -l "' + \
-                ', '.join(assemblers) + '"' + ' -o ' + quast_dir
-            if run_timing: 
-                quast_cmd = timing + (' %sTIMING.txt ' % (quast_dir)) + quast_cmd
+                ', '.join(assemblers) + '"' + ' -o ' + quast_dir + ' -t ' + str(num_threads)
             cmds.append(quast_cmd)
 
         cmds.append('\n#---------- CLEAN UP -------------')
