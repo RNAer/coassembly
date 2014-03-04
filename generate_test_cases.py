@@ -27,7 +27,7 @@ from itertools import combinations
 max_combine = 5
 num_threads = 2
 home_dir = '/home/sawa6416/' # for easier switching from compy/s10
-test_case_dir = './test_cases/' # Where to save the test case scripts 
+test_case_dir = './test_cases2/' # Where to save the test case scripts 
 test_case_prefix = test_case_dir + 'tc' 
 test_case_notes = test_case_dir + 'NOTES.txt' 
 input_dir = home_dir + 'assembly/hand_selected_strains/' # Reference FASTA + reads
@@ -38,6 +38,10 @@ interleave = home_dir + 'bin/interleave-fasta.py'
 quast = 'python ' + home_dir + 'tools/quast-2.3/metaquast.py'
 run_quast = True
 run_quast_gene_finding = True
+
+""" Specify and select timing scripts """ 
+timing = '/home/sawa6416/bin/timing_wrapper.sh'
+run_timing = True
 
 """ Specify and select specific assemblers """ 
 # IDBA 
@@ -121,7 +125,12 @@ for n in xrange(1, max_combine+1):
             # Run IDBA 
             idba_dir = test_case_dir + 'out_idba/'
             cmds.append('mkdir -p ' + idba_dir)
-            cmds.append(idba + ' -r %sseqs.fasta -o %s' % (test_case_dir, idba_dir))
+
+            idba_cmd = idba + ' -r %sseqs.fasta -o %s' % (test_case_dir, idba_dir)
+            if run_timing: 
+                idba_cmd = timing + (' %sTIMING.txt ' % (idba_dir)) + idba_cmd
+            cmds.append(idba_cmd)
+
             cmds.append('rm %sseqs.fasta' % (test_case_dir))
             cmds.append('rm %s1.fq' % (test_case_dir)) # Get rid of gunzipped files
             cmds.append('rm %s2.fq' % (test_case_dir))
@@ -134,10 +143,15 @@ for n in xrange(1, max_combine+1):
             cmds.append('\n#---------- RUN SPADES -------------')
             spades_dir = test_case_dir + 'out_spades/'
             cmds.append('mkdir -p ' + spades_dir)
-            cmds.append(spades + \
+
+            spades_cmd = spades + \
                 (' -t %d ' % (num_threads)) + \
                 (' --pe1-1 %s1.fq.gz --pe1-2 %s2.fq.gz ' % (test_case_dir, test_case_dir)) + \
-                 '-o ' + spades_dir + ' -m ' + str(spades_mem))
+                 '-o ' + spades_dir + ' -m ' + str(spades_mem)
+            if run_timing: 
+                spades_cmd = timing + (' %sTIMING.txt ' % (spades_dir)) + spades_cmd
+            cmds.append(spades_cmd)
+
             contigs.append(spades_dir + 'contigs.fasta')
             assemblers.append('SPades')
 
@@ -147,8 +161,13 @@ for n in xrange(1, max_combine+1):
             cmds.append('mkdir -p ' + minia_dir)
             cmds.append('cat %s1.fq.gz %s2.fq.gz > %scombined.fq.gz' \
                 % (test_case_dir, test_case_dir, test_case_dir))
-            cmds.append(minia + ' %scombined.fq.gz %d %d %d %sout' % \
-                (test_case_dir, minia_kmer, minia_min, minia_size_est, minia_dir))
+
+            minia_cmd = minia + ' %scombined.fq.gz %d %d %d %sout' % \
+                (test_case_dir, minia_kmer, minia_min, minia_size_est, minia_dir)
+            if run_timing: 
+                minia_cmd = timing + (' %sTIMING.txt ' % (minia_dir)) + minia_cmd
+            cmds.append(minia_cmd)
+    
             cmds.append('rm -f %scombined.fq.gz' % (test_case_dir))
             contigs.append(minia_dir + 'out.contigs.fa')
             assemblers.append('Minia')
@@ -157,9 +176,13 @@ for n in xrange(1, max_combine+1):
             cmds.append('\n#---------- RUN QUAST -------------')
             quast_dir = test_case_dir + 'out_quast/'
             full_refs = [ input_dir + ref for ref in test_refs ] 
-            cmds.append(quast + (' --gene-finding ' if run_quast_gene_finding else ' ') + \
-                ' '.join(contigs) + ' -R ' + ','.join(full_refs) + ' -l "' + ', '.join(assemblers) + '"' + \
-                ' -o ' + quast_dir)
+
+            quast_cmd = quast + (' --gene-finding ' if run_quast_gene_finding else ' ') + \
+                ' '.join(contigs) + ' -R ' + ','.join(full_refs) + ' -l "' + \
+                ', '.join(assemblers) + '"' + ' -o ' + quast_dir
+            if run_timing: 
+                quast_cmd = timing + (' %sTIMING.txt ' % (quast_dir)) + quast_cmd
+            cmds.append(quast_cmd)
 
         cmds.append('\n#---------- CLEAN UP -------------')
         cmds.append('rm %s1.fq.gz' % (test_case_dir))
