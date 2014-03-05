@@ -91,6 +91,8 @@ for file1, file2 in file_pairs:
 
 i = 0 
 notes = open(test_case_notes, 'w')
+notes.write('#INPUT_DIR=%s\n' % (input_dir))
+notes.write('#NUM_REFS=%d\n' % (len(references)))
 
 for n in xrange(1, max_combine+1):
     for test_set in combinations(range(len(file_pairs)), n):
@@ -189,6 +191,7 @@ for n in xrange(1, max_combine+1):
             cmds.append('rm -f %s/out.reads_binary' % (minia_dir))
             cmds.append('rm -f %s/out.solid_kmers_binary' % (minia_dir))
             cmds.append('rm -f %s/out.solid_kmers_binary' % (minia_dir))
+            cmds.append('rm -f %s/out.t2_kmers' % (minia_dir))
             cmds.append('rm -f %scombined.fq.gz' % (test_case_dir))
 
             contigs.append(minia_dir + 'out.contigs.fa')
