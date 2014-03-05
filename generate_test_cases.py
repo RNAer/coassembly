@@ -93,6 +93,8 @@ i = 0
 notes = open(test_case_notes, 'w')
 notes.write('#INPUT_DIR=%s\n' % (input_dir))
 notes.write('#NUM_REFS=%d\n' % (len(references)))
+notes.write('#REFS=%s\n' % (','.join(references)))
+notes.write('#MAX_COMBINE=%d\n' % (max_combine))
 
 for n in xrange(1, max_combine+1):
     for test_set in combinations(range(len(file_pairs)), n):
