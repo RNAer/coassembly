@@ -26,7 +26,14 @@ from itertools import combinations
 # ---------------------------------------------------------------------
 max_combine = 5
 num_threads = 4
-home_dir = '/home/sawa6416/' # for easier switching from compy/s10
+s10 = True
+if s10:
+    home_dir = '/compy-home/sawa6416/' 
+    quast = home_dir + 'tools/s10/quast-2.3/metaquast.py'
+else:
+    home_dir = '/home/sawa6416/' 
+    quast = home_dir + 'tools/quast-2.3/metaquast.py'
+    
 test_case_dir = './test_cases/' # Where to save the test case scripts 
 test_case_prefix = test_case_dir + 'tc' 
 test_case_notes = test_case_dir + 'NOTES.txt' 
@@ -35,12 +42,11 @@ output_dir = home_dir + 'assembly/coassembly_test/' # Where to save assembler ou
 interleave = home_dir + 'bin/interleave-fasta.py'
 
 """ Specify and select evalutation scripts """ 
-quast = 'python ' + home_dir + 'tools/quast-2.3/metaquast.py'
 run_quast = True
 run_quast_gene_finding = True
 
 """ Specify and select timing scripts """ 
-timing = '/home/sawa6416/bin/timing_wrapper.sh'
+timing = home_dir + 'bin/timing_wrapper.sh'
 run_timing = True
 
 """ Specify and select specific assemblers """ 
@@ -132,6 +138,11 @@ for n in xrange(1, max_combine+1):
                 idba_cmd = timing + (' %sTIMING.txt ' % (idba_dir)) + idba_cmd
             cmds.append(idba_cmd)
 
+            # Remove some of IDBA's temporary files
+            cmds.append('rm -f %s/align*' % (idba_dir))
+            cmds.append('rm -f %s/graph*' % (idba_dir))
+            cmds.append('rm -f %s/kmer' % (idba_dir))
+
             cmds.append('rm %sseqs.fasta' % (test_case_dir))
             cmds.append('rm %s1.fq' % (test_case_dir)) # Get rid of gunzipped files
             cmds.append('rm %s2.fq' % (test_case_dir))
@@ -153,6 +164,9 @@ for n in xrange(1, max_combine+1):
                 spades_cmd = timing + (' %sTIMING.txt ' % (spades_dir)) + spades_cmd
             cmds.append(spades_cmd)
 
+            # Remove some of SPAdes' temporary files
+            cmds.append('rm -rf %s/corrected' % (spades_dir))
+
             contigs.append(spades_dir + 'contigs.fasta')
             assemblers.append('SPades')
 
@@ -168,8 +182,15 @@ for n in xrange(1, max_combine+1):
             if run_timing: 
                 minia_cmd = timing + (' %sTIMING.txt ' % (minia_dir)) + minia_cmd
             cmds.append(minia_cmd)
-    
+   
+            # Remove some of Minia's temporary files 
+            cmds.append('rm -f %s/out.debloom*' % (minia_dir))
+            cmds.append('rm -f %s/out.false_positive_kmers' % (minia_dir))
+            cmds.append('rm -f %s/out.reads_binary' % (minia_dir))
+            cmds.append('rm -f %s/out.solid_kmers_binary' % (minia_dir))
+            cmds.append('rm -f %s/out.solid_kmers_binary' % (minia_dir))
             cmds.append('rm -f %scombined.fq.gz' % (test_case_dir))
+
             contigs.append(minia_dir + 'out.contigs.fa')
             assemblers.append('Minia')
 
