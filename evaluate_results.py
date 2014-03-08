@@ -72,5 +72,6 @@ if __name__=="__main__":
     for res_dir, res_idx in zip(results_dirs, results_dir_idx):
         included_refs = test_cases[res_idx]
         for ref in included_refs:
-            print res_dir + '/out_quast/' + ref.replace('.fasta', '') + '_quast_output'
+            temp = res_dir + '/out_quast/' + ref.replace('.fasta', '') + '_quast_output'
+            print (os.path.isdir(temp))
     
