@@ -1,0 +1,44 @@
+All statistics are based on contigs of size >= 500 bp, unless otherwise noted (e.g., "# contigs (>= 0 bp)" and "Total length (>= 0 bp)" include all contigs).
+
+Assembly                        IDBA-UD     SPades      Minia     
+# contigs (>= 4 bp)             240         261         1678      
+Total length (>= 4 bp)          6170672     6152154     6066146   
+# contigs                       240         261         1678      
+Largest contig                  193152      193285      38855     
+Total length                    6170672     6152154     6066146   
+Reference length                6260361     6260361     6260361   
+GC (%)                          42.84       42.84       42.83     
+Reference GC (%)                42.84       42.84       42.84     
+N50                             47975       45994       5471      
+NG50                            47165       45442       5328      
+N75                             28202       27408       3087      
+NG75                            27289       25315       2860      
+L50                             35          37          330       
+LG50                            36          38          348       
+L75                             78          80          699       
+LG75                            80          83          748       
+# misassemblies                 2           0           0         
+# misassembled contigs          2           0           0         
+Misassembled contigs length     67512       0           0         
+# local misassemblies           2           1           1         
+# unaligned contigs             0 + 0 part  0 + 0 part  0 + 0 part
+Unaligned length                0           0           0         
+Genome fraction (%)             98.473      98.204      96.514    
+Duplication ratio               1.001       1.001       1.004     
+# N's per 100 kbp               0.00        0.00        0.00      
+# mismatches per 100 kbp        2.60        1.79        2.14      
+# indels per 100 kbp            0.05        0.10        0.05      
+# predicted genes (unique)      4805        4797        5781      
+# predicted genes (>= 0 bp)     4805        4797        5781      
+# predicted genes (>= 300 bp)   4363        4351        4914      
+# predicted genes (>= 1500 bp)  1152        1153        941       
+# predicted genes (>= 3000 bp)  212         216         107       
+Largest alignment               193152      193285      38855     
+NA50                            47975       45994       5471      
+NGA50                           47165       45442       5328      
+NA75                            28202       27408       3087      
+NGA75                           27289       25315       2860      
+LA50                            35          37          330       
+LGA50                           36          38          348       
+LA75                            78          80          699       
+LGA75                           80          83          748       
