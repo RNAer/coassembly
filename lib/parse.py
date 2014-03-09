@@ -12,6 +12,15 @@ __status__ = "Development"
 import os
 import re
 import argparse
+import cPickle as pickle
+
+def dump(thing, output_file):
+    """ Dump dat thing """ 
+    pickle.dump(thing, open(output_file, "wb"))
+
+def load(input_file):
+    """ Load that pickle thing """ 
+    return pickle.load(open(input_file, "rb"))
 
 def parse_quast_report(report_file):
     """ Parse quast report to dictionary of dictionaries """
