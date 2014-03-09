@@ -68,6 +68,22 @@ def parse_all_reports(results_dir, notes_file):
 
     return reports
 
+def print_failed_reports(results_dir, notes_file):
+    results_dirs = [ os.path.join(results_dir, d) for d in os.listdir(results_dir) \
+        if os.path.isdir(os.path.join(results_dir, d)) ]
+    results_dir_idx = [ int(re.search(r'[0-9]+$', d).group()) for d in results_dirs ]
+
+    params, test_cases = parse_notes(notes_file)
+
+    for res_dir, res_idx in zip(results_dirs, results_dir_idx):
+        included_refs = test_cases[res_idx]
+        for ref in included_refs:
+            temp = res_dir + '/out_quast/' + ref.replace('.fasta', '') + '_quast_output'
+            quast_report = temp+'/report.tsv'
+            if not os.path.exists(quast_report):
+                print res_dir
+                break
+
 def custom_cast(s):
     """ Convert to number/string in that order of preference """
     for cast_func in (int, float, str):
