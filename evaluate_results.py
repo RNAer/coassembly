@@ -10,6 +10,7 @@ __email__ = "samfway@gmail.com"
 __status__ = "Development"
 
 import argparse
+import brewer2mpl
 from numpy import array
 from lib.quast import parse_quast_report
 from lib.parse import parse_notes, parse_all_reports
@@ -35,7 +36,7 @@ def plot_genome_percentage(reports, output_name='gen_per.pdf'):
 
     fig = plt.figure()
     ax = plt.axes()
-    colors = ['c', 'm', 'y', 'k']
+    colors = brewer2mpl.get_map('Set2', 'Qualitative', num_assemblers).mpl_colors
     plt.hold(True)
     assembler_output = {} 
 
@@ -48,6 +49,7 @@ def plot_genome_percentage(reports, output_name='gen_per.pdf'):
         assembler_output[assembler] = value_dict
 
     base_range = array(range(1, len(mixtures)+1))
+    bar_handles = []
     for index, assembler in enumerate(assemblers):
         ind = base_range + index*width
         means = []
@@ -56,9 +58,15 @@ def plot_genome_percentage(reports, output_name='gen_per.pdf'):
             data = array(assembler_output[assembler][m])
             means.append(data.mean())
             stds.append(data.std())
-        rects = ax.bar(ind, means, width, color=colors[index], yerr=stds)
+        bars = ax.bar(ind, means, width, color=colors[index], ecolor='k', yerr=stds, alpha=0.9)
+        bar_handles.append(bars)
+
+    ax.legend( tuple(bar_handles), assemblers)
+    ax.set_xticks(base_range + (num_assemblers*width/2))
+    ax.set_xticklabels( ([str(m) for m in mixtures ]) )
     
     """
+    # For box plots:
     for m in mixtures:
         # positions groups by assembler
         positions = range(((m-1)+(m)*num_assemblers)-num_assemblers+1, ((m-1)+(m)*num_assemblers)+1)
