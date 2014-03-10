@@ -77,6 +77,49 @@ def parse_all_reports(results_dir, notes_file):
 
     return reports
 
+def parse_timing_file(timing_file):
+    """ Parse benchmarking timing file to dictionary 
+
+            Returned dictionary has the following fields:
+                ['time_wall', 'time_user', 'time_kernel', 'mem']
+        
+            EXPECTED FORMAT ("%e;%U;%S;%M")
+            %e : elapsed real time "wall time" in seconds
+            %U : total number of CPU seconds in user space
+            %S : total number of CPU seconds in kernel space
+            %M : maximum resident size pf the process, in KB
+
+        """ 
+    timing_pieces = open(timing_file, 'rU').readline().strip().split(';')
+    timing_fields = ['time_wall', 'time_user', 'time_kernel', 'mem'] 
+    if len(timing_pieces) != 4:
+        raise ValueError('Timing file format does not appear to be correct...')
+    timing_pieces = [float(x) for x in timing_pieces]
+    return dict(zip(timing_fields, timing_pieces))
+
+def parse_timing_info(results_dir, notes_file):
+    """ Parse timing information from results directories """ 
+    results_dirs = [ os.path.join(results_dir, d) for d in os.listdir(results_dir) \
+        if os.path.isdir(os.path.join(results_dir, d)) ]
+    results_dir_idx = [ int(re.search(r'[0-9]+$', d).group()) for d in results_dirs ]
+
+    params, test_cases = parse_notes(notes_file)
+    reference_files = params['REFS']
+    res_timing = {} 
+
+    for res_dir, res_idx in zip(results_dirs, results_dir_idx):
+        included_refs = test_cases[res_idx]
+        num_refs = len(included_refs)
+        temp_timing = {}
+        for output_dir in ['out_idba', 'out_minia', 'out_spades']:
+            timing_file = res_dir + '/' + output_dir + '/TIMING.txt'
+            timing_dict = parse_timing_file(timing_file)
+            temp_timing[output_dir] = timing_dict
+            temp_timing['num_refs'] = num_refs
+        res_timing[res_idx] = temp_timing
+
+    return res_timing
+
 def print_failed_reports(results_dir, notes_file):
     results_dirs = [ os.path.join(results_dir, d) for d in os.listdir(results_dir) \
         if os.path.isdir(os.path.join(results_dir, d)) ]
