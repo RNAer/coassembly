@@ -10,6 +10,5 @@ __email__ = "samfway@gmail.com"
 __status__ = "Development"
 
 from lib.quast import parse_quast_report
-
 parse_quast_report('data/report.tsv')
     
