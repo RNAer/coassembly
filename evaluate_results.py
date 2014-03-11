@@ -14,18 +14,24 @@ import brewer2mpl
 from numpy import array
 from lib.parse import load
 import matplotlib.pyplot as plt
+from lib.plot_helpers import color_bp
 
 def interface():
     args = argparse.ArgumentParser() 
     args.add_argument('-i', '--results-pickle', help='Results pickle', required=True)
+    args.add_argument('-o', '--output-prefix', help='Prefix for generated files', required=True)
+    args.add_argument('-s', '--output-suffix', help='Suffix/filetype for output files', \
+        default='.pdf')
     args = args.parse_args()
     return args
 
-def make_plots(reports, output_name='gen_per.pdf', references=None, assemblers=None):
+def make_plots(reports, output_name, references=None, assemblers=None):
 
-    key = '# predicted genes (>= 1500 bp)' #'Genome fraction (%)'
-    normalize = False
+    key = 'N50' #'# misassemblies' #'Genome fraction (%)'
+    normalize = False 
     normalize_by = 'Reference length'
+    plot_bar = False
+    legend_loc='upper left'
     if references is None:
         references = reports.keys()
     if len(references) == 1:
@@ -40,6 +46,7 @@ def make_plots(reports, output_name='gen_per.pdf', references=None, assemblers=N
 
     positions = range(1, num_assemblers+1)
 
+    fig = plt.figure()
     ax = plt.axes()
     colors = brewer2mpl.get_map('Set2', 'Qualitative', num_assemblers).mpl_colors
     plt.hold(True)
@@ -75,15 +82,18 @@ def make_plots(reports, output_name='gen_per.pdf', references=None, assemblers=N
             yerr=(mins,maxs), alpha=0.9)
         bar_handles.append(bars)
 
-    ax.legend( tuple(bar_handles), assemblers, loc='lower left')
+    ax.legend( tuple(bar_handles), assemblers, loc=legend_loc)
     ax.set_xticks(base_range + (num_assemblers*width/2))
     ax.set_xticklabels( ([str(m) for m in mixtures ]) )
     plt.title(key + ' for ' + ref_title)
     plt.ylabel(key)
     plt.xlabel('Co-assembly number')
-    plt.show()
+    if plot_bar: 
+        plt.savefig(output_name)
+    #plt.show()
     plt.hold(False)
 
+    fig = plt.figure()
     ax = plt.axes()
     plt.hold(True)
     # For box plots:
@@ -104,33 +114,23 @@ def make_plots(reports, output_name='gen_per.pdf', references=None, assemblers=N
     for i in xrange(num_assemblers):
         h, = plt.plot([0,0], [0,0.01], linewidth=4, color=colors[i])
         fake.append(h)
-    plt.legend(fake, assemblers, loc='lower left')
+    plt.legend(fake, assemblers, loc=legend_loc)
     for f in fake:
         f.set_visible(False)
 
     plt.title(key + ' for ' + ref_title)
     plt.ylabel(key)
     plt.xlabel('Co-assembly number')
-    plt.show()
+    #plt.show()
     plt.hold(False)
-    #plt.savefig(output_name)
-
-def color_bp(bp, colors):
-    num_items = len(bp['boxes'])
-    for i in xrange(num_items):
-        plt.setp(bp['boxes'][i], color=colors[i])
-        plt.setp(bp['caps'][2*i], color=colors[i])
-        plt.setp(bp['caps'][2*i+1], color=colors[i])
-        plt.setp(bp['whiskers'][2*i], color=colors[i])
-        plt.setp(bp['whiskers'][2*i+1], color=colors[i])
-        plt.setp(bp['fliers'][2*i], color=colors[i])
-        plt.setp(bp['fliers'][2*i+1], color=colors[i])
-        plt.setp(bp['medians'][i], color=colors[i])
+    if not plot_bar:
+        plt.savefig(output_name)
 
 if __name__=="__main__":
     args = interface() 
     reports = load(args.results_pickle) 
     for ref in reports.keys():  
-        make_plots(reports, references=[ref])
+        output_name = args.output_prefix + ref + args.output_suffix
+        make_plots(reports, output_name, references=[ref])
 
     
