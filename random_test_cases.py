@@ -27,7 +27,9 @@ from numpy import arange
 #  Configuration of input/output/executable paths and program options
 # ---------------------------------------------------------------------
 max_combine = 5
-num_tests = 100
+
+coassembly_counts = [1, 2, 5, 10, 20]
+num_tests = 100  # Number of tests per coassembly count
 num_threads = 4
 s10 = True
 if s10:
@@ -101,7 +103,7 @@ notes.write('#MAX_COMBINE=%d\n' % (max_combine))
 notes.write('#NUM_TESTS=%d\n' % (num_tests))
 indices = arange(len(references))
 
-for n in xrange(1, max_combine+1):
+for n in coassembly_counts:
     for t in xrange(num_tests): #test_set in combinations(range(len(file_pairs)), n):
 
         shuffle(indices)
